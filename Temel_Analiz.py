@@ -39,7 +39,7 @@ def Hisse_Piyasa_Oranlari(Hisse):
     options = Options()
     options.headless = True
     options.add_argument('--log-level=3')
-    driver = webdriver.Chrome (executable_path="C:\\chromedriver.exe", options=options)    
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)    
     driver.get("https://halkyatirim.com.tr/skorkart/"+Hisse)
     soup = BeautifulSoup(driver.page_source)
     driver.quit()
