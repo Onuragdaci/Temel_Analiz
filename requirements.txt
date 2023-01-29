@@ -7,5 +7,6 @@ streamlit==1.15.0
 websocket-client==0.57.0
 beautifulsoup4==4.11.1
 lxml==4.9.2
+selenium==4.8.0
 tvDatafeed @ git+https://github.com/StreamAlpha/tvdatafeed.git
 requests
