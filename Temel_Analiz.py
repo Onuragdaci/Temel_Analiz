@@ -360,6 +360,13 @@ TemV.columns.values[1] = 'Temel Analiz Verileri'                                
 CarpV = df_TTV[8]                                                                         #Çarpan Verilerininin Çekilmesi
 CarpV = CarpV.head(len(CarpV)-2)                                                          #Çarpan Satırlarının Azaltılması
 CarpV = CarpV.drop(CarpV.columns[[2,8,9,10,11,12,13]], axis=1)                            #Çarpan Sütünlarının Azaltılması
+KarV = df_TTV[7]                                                                          #Karlılık Verilerini Çek
+OzserKar=KarV[KarV.columns[9]].to_list()[:12]                                             #Öz Sermaye Karlılığı
+AktifKar=KarV[KarV.columns[10]].to_list()[:12]                                            #Aktif Karlılık 
+OzserKar.insert(0,'Öz Sermaye Karlılığı')                                                 #Öz Sermaye Karlılığı
+AktifKar.insert(0,'Aktif Karlılık')                                                       #Aktif Karlılık 
+df_Oranlar.loc[len(df_Oranlar)] = AktifKar
+df_Oranlar.loc[len(df_Oranlar)] = OzserKar
 
 #Tarihsel Piyasa Çarpanları Ortalaması 
 CARPV_FKX=CarpV['F/K'].to_numpy(dtype='float')                                            #Tarihsel F/K Oranı                                          
