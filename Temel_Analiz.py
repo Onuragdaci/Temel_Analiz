@@ -118,6 +118,8 @@ def Bilanco_Analiz(dfAll,Hisse):
     B05=dfAll[dfAll[Hisse].isin(['Özkaynaklar'])].reset_index(drop=True)                                 #Özkaynaklar
     BX05=B05.drop(B05.columns[[0]],axis = 1).to_numpy(dtype='float')                                     #Özkaynaklar
 
+    MODV=dfAll[dfAll[Hisse].isin(['Maddi Olmayan Duran Varlıklar'])].reset_index(drop=True)              #Maddi Olmayan Duran Varlıklar
+
     B06=dfAll[dfAll[Hisse].isin(['Ödenmiş Sermaye'])].reset_index(drop=True)                             #Ödenmiş Sermaye
     BX06=B06.drop(B06.columns[[0]],axis = 1).to_numpy(dtype='float')                                     #Ödenmiş Sermaye
 
@@ -157,7 +159,7 @@ def Bilanco_Analiz(dfAll,Hisse):
     B14=dfAll[dfAll[Hisse].isin(['Net YPP (Hedge Dahil)'])].reset_index(drop=True)                       #Net Yabancı Para Pozisyonu Hedge Dahil
     BX14=B14.drop(B14.columns[[0]],axis = 1).to_numpy(dtype='float')                                     #Net Yabancı Para Pozisyonu Hedge Dahil
 
-    Bilanco= [B01,B02,B03,B04,B05,B06,B07,B08,B11,B12,B13,B14]                                           #Önemli Bilanço Tablosu Verilerinin Birleştirilmesi
+    Bilanco= [B01,B02,B03,B04,B05,MODV,B06,B07,B08,B11,B12,B13,B14]                                      #Önemli Bilanço Tablosu Verilerinin Birleştirilmesi
     Bilanco = pd.concat(Bilanco)                                                                         #Önemli Bilanço Tablosu Verilerinin Birleştirilmesi
     
     ################################# GELİR GİDER TABLOSU VERİLERİNİN ALINMASI #######################################################
