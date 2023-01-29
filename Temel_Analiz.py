@@ -375,7 +375,7 @@ df_Bilanco, df_Gelir, df_Nakit, df_Oranlar =Bilanco_Analiz(Tüm_Veri,Hisse_Adı)
 
 Son_Durum=df_TTV[1]                                                                       #Son Durum Verilerinin Okunması
 Son_Durum=Son_Durum.drop(Son_Durum.index[2:], axis=0)                                     #Son Durum Verilerinin Ayıklanması
-Son_Durum.columns.values[0]=''                                                            #Son DUrum İlk Sütün Başlığının Silinmesi
+Son_Durum.columns.values[0]='Son Dönem'                                                   #Son Durum İlk Sütün Başlığının Silinmesi
 tv = TvDatafeed()                                                                         #Data Çekmek için Trading View Uygulamasının Çağırılması
 #TradingView dan Hisseye Ait Datanın Günlük Zaman Aralığında Çekilmesi
 Fiyat = tv.get_hist(symbol=Hisse_Adı,exchange='BIST',interval=Interval.in_daily,n_bars=2)['close'].to_list()  
