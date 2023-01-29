@@ -467,7 +467,7 @@ GX06=G06.drop(G06.columns[[0]],axis = 1).to_numpy(dtype='float')                
 GX06=((GX06[0][0]-GX06[0][1])/(GX06[0][1]+0.001)*100).tolist()                                       #Yüzde Hesaplama
 Yuzde=[GX01,GX02,GX03,GX04,GX05,GX06]                                                                #Yüzde Hesaplamalarını Birleştir
 Yuzde=[round(item,2) for item in Yuzde]                                                              #Yüzde Hesaplamalarını Yuvarlama
-print(Yuzde)
+
 df_Gelir_Ozet = [G01,G02,G03,G04,G05,G06]                                                            #Özet Gelir Tablosu Verilerinin Birleştirilmesi
 df_Gelir_Ozet=pd.concat(df_Gelir_Ozet).reset_index(drop=True)                                        #Özet Gelir Tablosu Verilerinin Birleştirilmesi
 df_Gelir_Ozet['%'] = Yuzde
