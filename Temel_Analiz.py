@@ -36,6 +36,7 @@ def Hisse_Temel_Veriler():
     df2=df[6]
     df2['Sektör']=df1[['Sektör']]                                                                   
     return df2
+@st.experimental_singleton
 def Hisse_Piyasa_Oranlari(Hisse):
     ################################# PİYASA ORANLARI ###########################################################
     options = Options()
