@@ -385,11 +385,11 @@ DiffPerc=round(DiffPerc,2)                                                      
 st.title('Hisse Adı: '+ Hisse_Adı + ' Sektör: '+ Sektor)
 col1, col2, col3, col4, col5 ,col6 = st.columns(6)
 col1.metric(label='Günlük Değişim', value=str(round(Fiyat[1],2)) + 'TL', delta=str(DiffPerc)+'%')
-col2.metric('Son 1 Hafta','',Son_Durum.iat[0, 1])                                         #Haftalık Değişimin Gösterilmesi
-col3.metric('Son 1 Ay','',Son_Durum.iat[0, 2])                                            #Aylık Değişimin Gösterilmesi
-col4.metric('Son 3 Ay','',Son_Durum.iat[0, 3])                                            #3 Aylık Değişimin Gösterilmesi
-col5.metric('Son 6 Ay','',Son_Durum.iat[0, 4])                                            #6 Aylık Değişimin Gösterilmesi
-col6.metric('Son 1 Yıl','',Son_Durum.iat[0, 5])                                           #Yıllık Değişimin Gösterilmesi
+col2.metric('Son 1 Hafta','',Son_Durum.iat[0, 0])                                         #Haftalık Değişimin Gösterilmesi
+col3.metric('Son 1 Ay','',Son_Durum.iat[0, 1])                                            #Aylık Değişimin Gösterilmesi
+col4.metric('Son 3 Ay','',Son_Durum.iat[0, 2])                                            #3 Aylık Değişimin Gösterilmesi
+col5.metric('Son 6 Ay','',Son_Durum.iat[0, 3])                                            #6 Aylık Değişimin Gösterilmesi
+col6.metric('Son 1 Yıl','',Son_Durum.iat[0, 4])                                           #Yıllık Değişimin Gösterilmesi
 
 TemV = df_TTV[4]                                                                          #Temel Verilerin Çekilmesi
 TemV.columns.values[0] = Hisse_Adı
