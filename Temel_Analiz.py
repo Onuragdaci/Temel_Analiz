@@ -314,7 +314,7 @@ def Grafikler_1(df_Graph,Hisse):
         FigDatText1=[millify(j,3) for j in FigDatText1]
         fig.add_trace(go.Scatter(name=FigNam, x=X[::-1], y=FigDat[::-1],hovertext=FigDatText1,hoverinfo='text'),row=i+1, col=1)
         fig.update_xaxes(title_text="<b>" + FigNam +"<b>", row=i+1, col=1)
-        fig.update_yaxes(title_text="<b>Türk Lirası</b>",row=i+1, col=1)
+        fig.update_yaxes(title_text="<b>Oran</b>",row=i+1, col=1)
     return fig
 def Grafikler_2(df_Graph,Hisse):
     ################################# GRAFİKLER ###########################################################
