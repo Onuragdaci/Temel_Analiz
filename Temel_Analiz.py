@@ -383,13 +383,9 @@ DiffPerc=100*(Fiyat[1]-Fiyat[0])/(Fiyat[0])                                     
 DiffPerc=round(DiffPerc,2)                                                                #Bir Önceki Güne Göre % Değişimin Yuvarlanması
 
 st.title('Hisse Adı: '+ Hisse_Adı + ' Sektör: '+ Sektor)
-col1, col2, col3, col4, col5 ,col6 = st.columns(6)
+col1, col2 = st.columns(2)
 col1.metric(label='Günlük Değişim', value=str(round(Fiyat[1],2)) + 'TL', delta=str(DiffPerc)+'%')
-col2.metric('Son 1 Hafta','',Son_Durum.iat[0, 0])                                         #Haftalık Değişimin Gösterilmesi
-col3.metric('Son 1 Ay','',Son_Durum.iat[0, 1])                                            #Aylık Değişimin Gösterilmesi
-col4.metric('Son 3 Ay','',Son_Durum.iat[0, 2])                                            #3 Aylık Değişimin Gösterilmesi
-col5.metric('Son 6 Ay','',Son_Durum.iat[0, 3])                                            #6 Aylık Değişimin Gösterilmesi
-col6.metric('Son 1 Yıl','',Son_Durum.iat[0, 4])                                           #Yıllık Değişimin Gösterilmesi
+col2.dataframe(Son_Durum,use_container_width=True)
 
 TemV = df_TTV[4]                                                                          #Temel Verilerin Çekilmesi
 TemV.columns.values[0] = Hisse_Adı
