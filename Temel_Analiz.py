@@ -1,8 +1,6 @@
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
 from plotly.subplots import make_subplots 
 from millify import millify
 import requests
@@ -36,13 +34,12 @@ def Hisse_Temel_Veriler():
     df2=df[6]
     df2['Sektör']=df1[['Sektör']]                                                                   
     return df2
-@st.experimental_singleton
 def Hisse_Piyasa_Oranlari(Hisse):
     ################################# PİYASA ORANLARI ###########################################################
     options = Options()
     options.headless = True
     options.add_argument('--log-level=3')
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)    
+    driver = webdriver.Chrome (executable_path="C:\\chromedriver.exe", options=options)    
     driver.get("https://halkyatirim.com.tr/skorkart/"+Hisse)
     soup = BeautifulSoup(driver.page_source)
     driver.quit()
@@ -301,9 +298,9 @@ def Bilanco_Analiz(dfAll,Hisse):
     Oranlar=pd.concat([LikO,KalO,KarO,DigO],axis=1)                                                                       #Tüm Oranların Birleştirilmesi
     Oranlar=Oranlar.T.reset_index()                                                                                       #Oranların Transpoze Edilmesi
     Oranlar.columns.values[0] = Hisse                                                                                     #Oranlara Hisse Adı Başlığının Yazılması
-    Bilanco=Bilanco.reset_index().drop(['index'], axis=1)                                                                 #Önemli Bilanço Tablosunun Index'inin Resetlemesi
-    Gelir=Gelir.reset_index().drop(['index'], axis=1)                                                                     #Önemli Gelir Tablosunun Index'inin Resetlenmesi
-    Nakit=Nakit.reset_index().drop(['index'], axis=1)                                                                     #Önemli Nakit Akım Tablosunun Index'inin Resetlenmesi
+    Bilanco=Bilanco.reset_index(drop=True)                                                                                #Önemli Bilanço Tablosunun Index'inin Resetlemesi
+    Gelir=Gelir.reset_index(drop=True)                                                                                    #Önemli Gelir Tablosunun Index'inin Resetlenmesi
+    Nakit=Nakit.reset_index(drop=True)                                                                                    #Önemli Nakit Akım Tablosunun Index'inin Resetlenmesi
     return Bilanco,Gelir,Nakit,Oranlar                                                                                    #Tüm Verilerinin Dışa Aktarılması
 def Grafikler_1(df_Graph,Hisse):
     ################################# GRAFİKLER ###########################################################
@@ -342,12 +339,42 @@ with st.sidebar:
     Hisse_Adı = st.selectbox('Hisse Adı',Hisse_Ozet['Kod'])
 
 
-#BIST Pİyasa Çarpanları Ortalaması 
+##################################################VERİLERİN HAZIRLANMASI##################################################
+Tüm_Veri= Hisse_Bilanco(Hisse_Adı)                                                        #Bilanço Verilerilerinin Çağırılması
+df_TTV = Hisse_Piyasa_Oranlari(Hisse_Adı)                                                 #Hisseye Ait Piyasa Verilerinin Çağırılması
+df_Bilanco, df_Gelir, df_Nakit, df_Oranlar =Bilanco_Analiz(Tüm_Veri,Hisse_Adı)            #Bİlanço Verilerinin Ayıklanması ve Rasyoların Hesaplanması
+
+tv = TvDatafeed()                                                                         #Data Çekmek için Trading View Uygulamasının Çağırılması
+#TradingView dan Hisseye Ait Datanın Günlük Zaman Aralığında Çekilmesi
+Fiyat = tv.get_hist(symbol=Hisse_Adı,exchange='BIST',interval=Interval.in_daily,n_bars=2)['close'].to_list()  
+DiffPerc=100*(Fiyat[1]-Fiyat[0])/(Fiyat[0])                                               #Bir Önceki Güne Göre % Değişimin Hesaplanması
+DiffPerc=round(DiffPerc,2)                                                                #Bir Önceki Güne Göre % Değişimin Yuvarlanması
+
+Son_Durum=df_TTV[1]                                                                       #Son Durum Verilerinin Okunması
+Son_Durum=Son_Durum.drop(Son_Durum.index[2:], axis=0)                                     #Son Durum Verilerinin Ayıklanması
+TemV = df_TTV[4]                                                                          #Temel Verilerin Çekilmesi
+TemV.columns.values[0] = Hisse_Adı                                                        #Temel Verilerin Düzenlenmesi
+TemV.columns.values[1] = 'Temel Analiz Verileri'                                          #Temel Verilerin Düzenlenmesi
+CarpV = df_TTV[8]                                                                         #Çarpan Verilerininin Çekilmesi
+CarpV = CarpV.head(len(CarpV)-2)                                                          #Çarpan Satırlarının Azaltılması
+CarpV = CarpV.drop(CarpV.columns[[2,8,9,10,11,12,13]], axis=1)                            #Çarpan Sütünlarının Azaltılması
+
+#Tarihsel Piyasa Çarpanları Ortalaması 
+CARPV_FKX=CarpV['F/K'].to_numpy(dtype='float')                                            #Tarihsel F/K Oranı                                          
+CARPV_PDDDX=CarpV['PD/DD'].to_numpy(dtype='float')                                        #Tarihsel PD/DD Oranı
+CARPV_FD_FAV=CarpV['FD/FAVÖK'].to_numpy(dtype='float')                                    #Tarihsel FD/FAVÖK Oranı
+CARPV_FD_SAT=CarpV['FD/Satışlar'].to_numpy(dtype='float')                                 #Tarihsel FD/Satışlar Oranı
+CARPV_FKX=np.nanmean(CARPV_FKX)                                                           #Tarihsel Ortalaması
+CARPV_PDDDX=np.nanmean(CARPV_PDDDX)                                                       #Tarihsel PD/DD Ortalaması
+CARPV_FD_FAV=np.nanmean(CARPV_FD_FAV)                                                     #Tarihsel FD/FAVÖK Ortalaması
+CARPV_FD_SAT=np.nanmean(CARPV_FD_SAT)                                                     #Tarihsel FD/SAT Ortalaması
+
+#BIST Piyasa Çarpanları Ortalaması 
 Hisse_Ozet.replace('A/D', np.nan, inplace=True)                                           #Anlamsız Verileri NA ya çevir
 BIST_FKX=Hisse_Ozet['F/K'].to_numpy(dtype='float')                                        #BIST F/K Oranı
 BIST_PDDDX=Hisse_Ozet['PD/DD'].to_numpy(dtype='float')                                    #BIST PD/DD Oranı
 BIST_FD_FAV=Hisse_Ozet['FD/FAVÖK'].to_numpy(dtype='float')                                #BIST FD/FAVÖK Oranı
-BIST_FD_SAT=Hisse_Ozet['FD/FAVÖK'].to_numpy(dtype='float')                                #BIST FD/SAT Oranı
+BIST_FD_SAT=Hisse_Ozet['FD/Satışlar'].to_numpy(dtype='float')                             #BIST FD/SAT Oranı
 BIST_FKX=np.nanmean(BIST_FKX)                                                             #BIST Ortalaması
 BIST_PDDDX=np.nanmean(BIST_PDDDX)                                                         #BIST PD/DD Ortalaması
 BIST_FD_FAV=np.nanmean(BIST_FD_FAV)                                                       #BIST FD/FAVÖK Ortalaması
@@ -360,50 +387,115 @@ Filtre.replace('A/D', np.nan, inplace=True)                                     
 SEKTOR_FKX=Filtre['F/K'].to_numpy(dtype='float')                                          #Sektör F/K Oranı
 SEKTOR_PDDDX=Filtre['PD/DD'].to_numpy(dtype='float')                                      #Sektör PD/DD Oranı
 SEKTOR_FD_FAV=Filtre['FD/FAVÖK'].to_numpy(dtype='float')                                  #Sektör FD/FAVÖK Oranı
-SEKTOR_FD_SAT=Filtre['FD/FAVÖK'].to_numpy(dtype='float')                                  #Sektör FD/SAT Oranı
+SEKTOR_FD_SAT=Filtre['FD/Satışlar'].to_numpy(dtype='float')                               #Sektör FD/SAT Oranı
 SEKTOR_FKX=np.nanmean(SEKTOR_FKX)                                                         #Sektör Ortalaması
 SEKTOR_PDDDX=np.nanmean(SEKTOR_PDDDX)                                                     #Sektör PD/DD Ortalaması
 SEKTOR_FD_FAV=np.nanmean(SEKTOR_FD_FAV)                                                   #Sektör FD/FAVÖK Ortalaması
 SEKTOR_FD_SAT=np.nanmean(SEKTOR_FD_SAT)                                                   #Sektör FD/SAT Ortalaması
 
-Ortalama_Basliklar=['BIST F/K','BIST PD/DD','BIST FD/FAVÖK','BIST FD/SATIŞLAR','SEKTÖR F/K','SEKTÖR PD/DD','SEKTÖR FD/FAVÖK','SEKTÖR FD/SATIŞLAR']
-Ortalama_Carpanlar=[BIST_FKX,BIST_PDDDX,BIST_FD_FAV,BIST_FD_SAT,SEKTOR_FKX,SEKTOR_PDDDX,SEKTOR_FD_FAV,SEKTOR_FD_SAT]
+Ortalama_Basliklar=['BIST F/K','BIST PD/DD','BIST FD/FAVÖK','BIST FD/SATIŞLAR','SEKTÖR F/K','SEKTÖR PD/DD','SEKTÖR FD/FAVÖK','SEKTÖR FD/SATIŞLAR',
+                'TARİHSEL F/K','TARİHSEL PD/DD','TARİHSEL FD/FAVÖK','TARİHSEL FD/SATIŞLAR']
+Ortalama_Carpanlar=[BIST_FKX,BIST_PDDDX,BIST_FD_FAV,BIST_FD_SAT,SEKTOR_FKX,SEKTOR_PDDDX,SEKTOR_FD_FAV,SEKTOR_FD_SAT,CARPV_FKX,CARPV_PDDDX,CARPV_FD_FAV,CARPV_FD_SAT]
 Tum_Ortalamalar=pd.DataFrame([Ortalama_Carpanlar],columns=Ortalama_Basliklar)             #Tüm Çarpan Ortalamalarının Birleştirilmesi
 
-Tüm_Veri= Hisse_Bilanco(Hisse_Adı)
-df_TTV = Hisse_Piyasa_Oranlari(Hisse_Adı)                                                 #Hisseye Ait Piyasa Verilerinin Çağırılması
-df_Bilanco, df_Gelir, df_Nakit, df_Oranlar =Bilanco_Analiz(Tüm_Veri,Hisse_Adı)            #Bİlanço Verilerinin Çağırılması
 
-Son_Durum=df_TTV[1]                                                                       #Son Durum Verilerinin Okunması
-Son_Durum=Son_Durum.drop(Son_Durum.index[2:], axis=0)                                     #Son Durum Verilerinin Ayıklanması
-tv = TvDatafeed()                                                                         #Data Çekmek için Trading View Uygulamasının Çağırılması
-#TradingView dan Hisseye Ait Datanın Günlük Zaman Aralığında Çekilmesi
-Fiyat = tv.get_hist(symbol=Hisse_Adı,exchange='BIST',interval=Interval.in_daily,n_bars=2)['close'].to_list()  
-DiffPerc=100*(Fiyat[1]-Fiyat[0])/(Fiyat[0])                                               #Bir Önceki Güne Göre % Değişimin Hesaplanması
-DiffPerc=round(DiffPerc,2)                                                                #Bir Önceki Güne Göre % Değişimin Yuvarlanması
+#Özet Bilanço Tablosunun Hazırlanması
+B01=df_Bilanco[df_Bilanco[Hisse_Adı].isin(['Dönen Varlıklar'])].reset_index(drop=True)               #Dönen Varlıklar
+B02=df_Bilanco[df_Bilanco[Hisse_Adı].isin(['Duran Varlıklar'])].reset_index(drop=True)               #Duran Varlıklar
+B03=df_Bilanco[df_Bilanco[Hisse_Adı].isin(['Kısa Vadeli Yükümlülükler'])].reset_index(drop=True)     #Kısa Vadeli Yükümlülükler
+B04=df_Bilanco[df_Bilanco[Hisse_Adı].isin(['Uzun Vadeli Yükümlülükler'])].reset_index(drop=True)     #Uzun Vadeli Yükümlülükler
+B05=df_Bilanco[df_Bilanco[Hisse_Adı].isin(['Net Borç'])].reset_index(drop=True)                      #Net Borç
+B06=df_Bilanco[df_Bilanco[Hisse_Adı].isin(['Özkaynaklar'])].reset_index(drop=True)                   #Özkaynaklar
+B01=B01.drop(B01.columns[3::], axis=1)                                                               #Dönen Varlık Satırlarının Silinmesi
+B02=B02.drop(B02.columns[3::], axis=1)                                                               #Duran Varlık Satırlarının Silinmesi
+B03=B03.drop(B03.columns[3::], axis=1)                                                               #Kısa Vadeli Yükümlülükler Satırlarının Silinmesi
+B04=B04.drop(B04.columns[3::], axis=1)                                                               #Uzun Vadeli Yükümlülükler Satırlarının Silinmesi
+B05=B05.drop(B05.columns[3::], axis=1)                                                               #Net Borç Satırlarının Silinmesi
+B06=B06.drop(B06.columns[3::], axis=1)                                                               #Özkaynaklar Satırlarının Silinmesi 
 
-st.title('Hisse Adı: '+ Hisse_Adı + ' Sektör: '+ Sektor)
-col1, col2 = st.columns(2)
+BX01=B01.drop(B01.columns[[0]],axis = 1).to_numpy(dtype='float')                                     #Dönen Varlıklar
+BX01=((BX01[0][0]-BX01[0][1])/(BX01[0][1]+0.001)*100).tolist()                                       #Yüzde Hesaplama
+BX02=B02.drop(B02.columns[[0]],axis = 1).to_numpy(dtype='float')                                     #Duran Varlıklar
+BX02=((BX02[0][0]-BX02[0][1])/(BX02[0][1]+0.001)*100).tolist()                                       #Yüzde Hesaplama
+BX03=B03.drop(B03.columns[[0]],axis = 1).to_numpy(dtype='float')                                     #Kısa Vadeli Yükümlülükler
+BX03=((BX03[0][0]-BX03[0][1])/(BX03[0][1]+0.001)*100).tolist()                                       #Yüzde Hesaplama
+BX04=B04.drop(B04.columns[[0]],axis = 1).to_numpy(dtype='float')                                     #Uzun Vadeli Yükümlülükler
+BX04=((BX04[0][0]-BX04[0][1])/(BX04[0][1]+0.001)*100).tolist()                                       #Yüzde Hesaplama
+BX05=B05.drop(B05.columns[[0]],axis = 1).to_numpy(dtype='float')                                     #Net Borç
+BX05=((BX05[0][0]-BX05[0][1])/(BX05[0][1]+0.001)*100).tolist()                                       #Yüzde Hesaplama
+BX06=B06.drop(B06.columns[[0]],axis = 1).to_numpy(dtype='float')                                     #Özkaynaklar
+BX06=((BX06[0][0]-BX06[0][1])/(BX06[0][1]+0.001)*100).tolist()                                       #Yüzde Hesaplama
+Yuzde=[BX01,BX02,BX03,BX04,BX05,BX06]                                                                #Yüzde Hesaplamalarını Birleştir
+Yuzde=[round(item,2) for item in Yuzde]                                                              #Yüzde Hesaplamalarını Yuvarlama
+
+df_Bilanco_Ozet = [B01,B02,B03,B04,B05,B06]                                                          #Özet Bilanço Verilerinin Birleştirilmesi
+df_Bilanco_Ozet=pd.concat(df_Bilanco_Ozet).reset_index(drop=True)                                    #Özet Bilanço Verilerinin Birleştirilmesi
+df_Bilanco_Ozet['%'] = Yuzde
+
+#Özet Gelir Tablosunun Hazırlanması
+
+G01=df_Gelir[df_Gelir[Hisse_Adı].isin(['Satış Gelirleri'])].reset_index(drop=True)                   #Satış Gelirleri
+G02=df_Gelir[df_Gelir[Hisse_Adı].isin(['Satışların Maliyeti (-)'])].reset_index(drop=True)           #Satış Maaliyetleri
+G03=df_Gelir[df_Gelir[Hisse_Adı].isin(['BRÜT KAR (ZARAR)'])].reset_index(drop=True)                  #Brüt Faaliyet Kar/Zarar
+G04=df_Gelir[df_Gelir[Hisse_Adı].isin(['FAALİYET KARI (ZARARI)'])].reset_index(drop=True)            #Esas Faaliyet Kar/Zararı
+G05=df_Gelir[df_Gelir[Hisse_Adı].isin(['Net Faaliyet Kar/Zararı'])].reset_index(drop=True)           #Net Faaliyet Kar/Zararı
+G06=df_Gelir[df_Gelir[Hisse_Adı].isin(['FAVÖK'])].reset_index(drop=True)                             #FAVÖK
+G01=G01.drop(G01.columns[6::], axis=1)                                                               #Dönen Varlık Satırlarının Silinmesi
+G01=G01.drop(G01.columns[[2,3,4]], axis=1)                                                           #Dönen Varlık Satırlarının Silinmesi
+G02=G02.drop(G02.columns[6::], axis=1)                                                               #Duran Varlık Satırlarının Silinmesi
+G02=G02.drop(G02.columns[[2,3,4]], axis=1)                                                           #Duran Varlık Satırlarının Silinmesi
+G03=G03.drop(G03.columns[6::], axis=1)                                                               #Kısa Vadeli Yükümlülükler Satırlarının Silinmesi
+G03=G03.drop(G03.columns[[2,3,4]], axis=1)                                                           #Kısa Vadeli Yükümlülükler Satırlarının Silinmesi
+G04=G04.drop(G04.columns[6::], axis=1)                                                               #Uzun Vadeli Yükümlülükler Satırlarının Silinmesi
+G04=G04.drop(G04.columns[[2,3,4]], axis=1)                                                           #Uzun Vadeli Yükümlülükler Satırlarının Silinmesi
+G05=G05.drop(G05.columns[6::], axis=1)                                                               #Net Borç Satırlarının Silinmesi
+G05=G05.drop(G05.columns[[2,3,4]], axis=1)                                                           #Net Borç Satırlarının Silinmesi
+G06=G06.drop(G06.columns[6::], axis=1)                                                               #Özkaynaklar Satırlarının Silinmesi 
+G06=G06.drop(G06.columns[[2,3,4]], axis=1)                                                           #Özkaynaklar Satırlarının Silinmesi 
+
+GX01=G01.drop(G01.columns[[0]],axis = 1).to_numpy(dtype='float')                                     #Dönen Varlıklar
+GX01=((GX01[0][0]-GX01[0][1])/(GX01[0][1]+0.001)*100).tolist()                                       #Yüzde Hesaplama
+GX02=G02.drop(G02.columns[[0]],axis = 1).to_numpy(dtype='float')                                     #Duran Varlıklar
+GX02=((GX02[0][0]-GX02[0][1])/(GX02[0][1]+0.001)*100).tolist()                                       #Yüzde Hesaplama
+GX03=G03.drop(G03.columns[[0]],axis = 1).to_numpy(dtype='float')                                     #Kısa Vadeli Yükümlülükler
+GX03=((GX03[0][0]-GX03[0][1])/(GX03[0][1]+0.001)*100).tolist()                                       #Yüzde Hesaplama
+GX04=G04.drop(G04.columns[[0]],axis = 1).to_numpy(dtype='float')                                     #Uzun Vadeli Yükümlülükler
+GX04=((GX04[0][0]-GX04[0][1])/(GX04[0][1]+0.001)*100).tolist()                                       #Yüzde Hesaplama
+GX05=G05.drop(G05.columns[[0]],axis = 1).to_numpy(dtype='float')                                     #Net Borç
+GX05=((GX05[0][0]-GX05[0][1])/(GX05[0][1]+0.001)*100).tolist()                                       #Yüzde Hesaplama
+GX06=G06.drop(G06.columns[[0]],axis = 1).to_numpy(dtype='float')                                     #Özkaynaklar
+GX06=((GX06[0][0]-GX06[0][1])/(GX06[0][1]+0.001)*100).tolist()                                       #Yüzde Hesaplama
+Yuzde=[GX01,GX02,GX03,GX04,GX05,GX06]                                                                #Yüzde Hesaplamalarını Birleştir
+Yuzde=[round(item,2) for item in Yuzde]                                                              #Yüzde Hesaplamalarını Yuvarlama
+print(Yuzde)
+df_Gelir_Ozet = [G01,G02,G03,G04,G05,G06]                                                            #Özet Gelir Tablosu Verilerinin Birleştirilmesi
+df_Gelir_Ozet=pd.concat(df_Gelir_Ozet).reset_index(drop=True)                                        #Özet Gelir Tablosu Verilerinin Birleştirilmesi
+df_Gelir_Ozet['%'] = Yuzde
+
+##################################################ARAYÜZ BİLEŞENLERİ##################################################
+st.title('Hisse Adı: '+ Hisse_Adı + ' Sektör: '+ Sektor)                                             #Ana Başlığın Oluşturulması
+col1, col2, col3, col4, col5 ,col6 = st.columns(6)
 col1.metric(label='Günlük Değişim', value=str(round(Fiyat[1],2)) + 'TL', delta=str(DiffPerc)+'%')
-col2.dataframe(Son_Durum,use_container_width=True)
+col2.metric('Son 1 Hafta','',Son_Durum.iat[0, 1])                                                    #Haftalık Değişimin Gösterilmesi
+col3.metric('Son 1 Ay','',Son_Durum.iat[0, 2])                                                       #Aylık Değişimin Gösterilmesi
+col4.metric('Son 3 Ay','',Son_Durum.iat[0, 3])                                                       #3 Aylık Değişimin Gösterilmesi
+col5.metric('Son 6 Ay','',Son_Durum.iat[0, 4])                                                       #6 Aylık Değişimin Gösterilmesi
+col6.metric('Son 1 Yıl','',Son_Durum.iat[0, 5])                                                      #Yıllık Değişimin Gösterilmesi
 
-TemV = df_TTV[4]                                                                          #Temel Verilerin Çekilmesi
-TemV.columns.values[0] = Hisse_Adı
-TemV.columns.values[1] = 'Temel Analiz Verileri'
-CarpV = df_TTV[8]                                                                         #Çarpan Verilerininin Çekilmesi
-CarpV = CarpV.head(len(CarpV)-2)                                                          #Çarpan Satırlarının Azaltılması
-CarpV = CarpV.drop(CarpV.columns[[2,8,9,10,11,12,13]], axis=1)                            #Çarpan Sütünlarının Azaltılması
+col1, col2 =st.columns(2)
+col1.subheader('Özet Gelir Tablosu')
+col1.dataframe(df_Gelir_Ozet,use_container_width=True)
+col2.subheader('Özet Bilanço Tablosu')
+col2.dataframe(df_Bilanco_Ozet,use_container_width=True)
 
 col1, col2 =st.columns(2)
 col1.subheader('Güncel Piyasa Çarpanları')
+
 col1.dataframe(TemV,use_container_width=True)
 col2.subheader('Tarihsel Piyasa Çarpanları')
 col2.dataframe(CarpV,use_container_width=True)
 
-CarpV = CarpV.T.reset_index() 
-CarpV=CarpV.drop(CarpV.columns[12:], axis=1)                                          #Çarpan Sütünları Azalt
-CarpV=CarpV.iloc[1: , :]
-st.subheader('BIST ve Sektör Piyasa Çarpanları')
+st.subheader('BIST ,Sektörel ve Tarihsel Piyasa Çarpanları')
 st.dataframe(Tum_Ortalamalar,use_container_width=True)
 
 st.subheader('Veriler')
@@ -431,6 +523,9 @@ with st.expander('Rosyo Grafikleri'):
 
 with st.expander('Tarihsel Piyasa Çarpanları Grafikleri'):
     with st.container():
+        CarpV = CarpV.T.reset_index() 
+        CarpV=CarpV.drop(CarpV.columns[12:], axis=1)
+        CarpV=CarpV.iloc[1: , :]
         fig2=Grafikler_1(CarpV,Hisse_Adı)
         fig2.update_layout(showlegend = False, height=4000)
         st.plotly_chart(fig2,use_container_width=True)
