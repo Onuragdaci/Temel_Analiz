@@ -159,7 +159,7 @@ def Bilanco_Analiz(dfAll,Hisse):
     B14=dfAll[dfAll[Hisse].isin(['Net YPP (Hedge Dahil)'])].reset_index(drop=True)                       #Net Yabancı Para Pozisyonu Hedge Dahil
     BX14=B14.drop(B14.columns[[0]],axis = 1).to_numpy(dtype='float')                                     #Net Yabancı Para Pozisyonu Hedge Dahil
 
-    Bilanco= [B01,B02,B03,B04,B05,MODV,B06,B07,B08,B11,B12,B13,B14]                                      #Önemli Bilanço Tablosu Verilerinin Birleştirilmesi
+    Bilanco= [B01,B02,B03,B04,B05,MODV,B06,B07,B08,B09,B11,B12,B13,B14]                                      #Önemli Bilanço Tablosu Verilerinin Birleştirilmesi
     Bilanco = pd.concat(Bilanco)                                                                         #Önemli Bilanço Tablosu Verilerinin Birleştirilmesi
     
     ################################# GELİR GİDER TABLOSU VERİLERİNİN ALINMASI #######################################################
@@ -548,4 +548,10 @@ with st.expander('Önemli Nakit Akım Tablosu Grafkleri'):
     with st.container():
         fig5=Grafikler_2(df_Nakit,Hisse_Adı)
         fig5.update_layout(showlegend = False, height=4000,width=1600)
+        st.plotly_chart(fig5,use_container_width=True)
+
+with st.expander('Tüm Bilanço Tablosu Grafikleri'):
+    with st.container():
+        fig5=Grafikler_2(Tüm_Veri,Hisse_Adı)
+        fig5.update_layout(showlegend = False, height=50000,width=1600)
         st.plotly_chart(fig5,use_container_width=True)
