@@ -39,18 +39,14 @@ def Hisse_Temel_Veriler():
     df2=df[6]
     df2['Sektör']=df1[['Sektör']]                                                                   
     return df2
-@st.experimental_singleton
-def get_driver():
-    return webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
+@st.experimental_singleton
 def Hisse_Piyasa_Oranlari(Hisse):
     ################################# PİYASA ORANLARI ###########################################################
-    
-
     options = Options()
     options.add_argument('--disable-gpu')
     options.add_argument('--headless')
-    driver = get_driver()  
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
     driver.get("https://halkyatirim.com.tr/skorkart/"+Hisse)
     soup = BeautifulSoup(driver.page_source)
     driver.quit()
