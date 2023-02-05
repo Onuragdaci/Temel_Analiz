@@ -3,9 +3,6 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
-
-
-
 from plotly.subplots import make_subplots 
 from millify import millify
 import requests
@@ -26,8 +23,7 @@ Hisse=[]                                                                    #Ana
 Fiyat=[]                                                                    #Analiz Edilecek Hissenin Güncel Fiyatı
 Firma=[]                                                                    #Analiz Edilecek Firma Adı
 X=[]
-
-
+@st.experimental_singleton
 def Hisse_Temel_Veriler():
     url1="https://www.isyatirim.com.tr/tr-tr/analiz/hisse/Sayfalar/Temel-Degerler-Ve-Oranlar.aspx#page-1"
     context = ssl._create_unverified_context()
@@ -39,14 +35,14 @@ def Hisse_Temel_Veriler():
     df2=df[6]
     df2['Sektör']=df1[['Sektör']]                                                                   
     return df2
-
-@st.experimental_singleton
+@st.experimental_singleton    
 def Hisse_Piyasa_Oranlari(Hisse):
     ################################# PİYASA ORANLARI ###########################################################
     options = Options()
     options.add_argument('--disable-gpu')
     options.add_argument('--headless')
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+    options.add_argument('--log-level=3')
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)  
     driver.get("https://halkyatirim.com.tr/skorkart/"+Hisse)
     soup = BeautifulSoup(driver.page_source)
     driver.quit()
@@ -375,14 +371,14 @@ AktifKar.insert(0,'Aktif Karlılık')                                           
 df_Oranlar.loc[len(df_Oranlar)] = AktifKar
 df_Oranlar.loc[len(df_Oranlar)] = OzserKar
 
-#Tarihsel Piyasa Çarpanları Ortalaması
-CarpV['F/K'] = CarpV['F/K'].replace('-', np.nan)
+#Tarihsel Piyasa Çarpanları Ortalaması 
+CarpV['F/K'] = CarpV['F/K'].replace('-', np.nan)                                          #'-' Değerlerin NaN ya ÇevrilmesiTarihsel 
 CARPV_FKX=CarpV['F/K'].to_numpy(dtype='float')                                            #Tarihsel F/K Oranı                                          
-CarpV['PD/DD'] = CarpV['PD/DD'].replace('-', np.nan)
+CarpV['PD/DD'] = CarpV['PD/DD'].replace('-', np.nan)                                      #'-' Değerlerin NaN ya ÇevrilmesiTarihsel
 CARPV_PDDDX=CarpV['PD/DD'].to_numpy(dtype='float')                                        #Tarihsel PD/DD Oranı
-CarpV['FD/FAVÖK'] = CarpV['FD/FAVÖK'].replace('-', np.nan)
+CarpV['FD/FAVÖK'] = CarpV['FD/FAVÖK'].replace('-', np.nan)                                #'-' Değerlerin NaN ya ÇevrilmesiTarihsel
 CARPV_FD_FAV=CarpV['FD/FAVÖK'].to_numpy(dtype='float')                                    #Tarihsel FD/FAVÖK Oranı
-CarpV['FD/Satışlar'] = CarpV['FD/Satışlar'].replace('-', np.nan)
+CarpV['FD/Satışlar'] = CarpV['FD/Satışlar'].replace('-', np.nan)                          #'-' Değerlerin NaN ya ÇevrilmesiTarihsel
 CARPV_FD_SAT=CarpV['FD/Satışlar'].to_numpy(dtype='float')                                 #Tarihsel FD/Satışlar Oranı
 CARPV_FKX=np.nanmean(CARPV_FKX)                                                           #Tarihsel Ortalaması
 CARPV_PDDDX=np.nanmean(CARPV_PDDDX)                                                       #Tarihsel PD/DD Ortalaması
