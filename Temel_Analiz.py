@@ -1,6 +1,11 @@
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+
+
+
 from plotly.subplots import make_subplots 
 from millify import millify
 import requests
@@ -34,13 +39,13 @@ def Hisse_Temel_Veriler():
     df2=df[6]
     df2['Sektör']=df1[['Sektör']]                                                                   
     return df2
+@st.experimental_singleton
 def get_driver():
     return webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
 def Hisse_Piyasa_Oranlari(Hisse):
     ################################# PİYASA ORANLARI ###########################################################
     
-    @st.experimental_singleton
 
     options = Options()
     options.add_argument('--disable-gpu')
