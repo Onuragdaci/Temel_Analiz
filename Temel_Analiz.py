@@ -23,7 +23,6 @@ Hisse=[]                                                                    #Ana
 Fiyat=[]                                                                    #Analiz Edilecek Hissenin Güncel Fiyatı
 Firma=[]                                                                    #Analiz Edilecek Firma Adı
 X=[]
-@st.experimental_singleton
 def Hisse_Temel_Veriler():
     url1="https://www.isyatirim.com.tr/tr-tr/analiz/hisse/Sayfalar/Temel-Degerler-Ve-Oranlar.aspx#page-1"
     context = ssl._create_unverified_context()
@@ -34,8 +33,7 @@ def Hisse_Temel_Veriler():
     df1=df[2]                                                                  #Tüm Hisselerin Özet Tablosu
     df2=df[6]
     df2['Sektör']=df1[['Sektör']]                                                                   
-    return df2
-@st.experimental_singleton    
+    return df2   
 def Hisse_Piyasa_Oranlari(Hisse):
     ################################# PİYASA ORANLARI ###########################################################
     options = Options()
@@ -104,6 +102,7 @@ def Hisse_Bilanco(Hisse):
     for col in dfAll.columns:                                                    #Ana Verideki Başlık İsimlerini Al
         X.append(col)                                                            #Başlık İsimlerini Boş Listeye Ekle
     return dfAll                                                                 #Ana Veriyi Dışarı Aktarma
+
 def Bilanco_Analiz(dfAll,Hisse):
     ################################# BİLANÇO VERİLERİNİN ALINMASI #######################################################
     B01=dfAll[dfAll[Hisse].isin(['Dönen Varlıklar'])].reset_index(drop=True)                             #Dönen Varlıklar
@@ -307,6 +306,7 @@ def Bilanco_Analiz(dfAll,Hisse):
     Gelir=Gelir.reset_index(drop=True)                                                                                    #Önemli Gelir Tablosunun Index'inin Resetlenmesi
     Nakit=Nakit.reset_index(drop=True)                                                                                    #Önemli Nakit Akım Tablosunun Index'inin Resetlenmesi
     return Bilanco,Gelir,Nakit,Oranlar                                                                                    #Tüm Verilerinin Dışa Aktarılması
+
 def Grafikler_1(df_Graph,Hisse):
     ################################# GRAFİKLER ###########################################################
     fig = make_subplots(rows=len(df_Graph.index), cols=1)
@@ -319,6 +319,7 @@ def Grafikler_1(df_Graph,Hisse):
         fig.update_xaxes(title_text="<b>" + FigNam +"<b>", row=i+1, col=1)
         fig.update_yaxes(title_text="<b>Oran</b>",row=i+1, col=1)
     return fig
+
 def Grafikler_2(df_Graph,Hisse):
     ################################# GRAFİKLER ###########################################################
     fig = make_subplots(rows=len(df_Graph.index), cols=1)
