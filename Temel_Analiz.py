@@ -368,10 +368,14 @@ AktifKar.insert(0,'Aktif Karlılık')                                           
 df_Oranlar.loc[len(df_Oranlar)] = AktifKar
 df_Oranlar.loc[len(df_Oranlar)] = OzserKar
 
-#Tarihsel Piyasa Çarpanları Ortalaması 
+#Tarihsel Piyasa Çarpanları Ortalaması
+CarpV['F/K'] = CarpV['F/K'].replace('-', np.nan)
 CARPV_FKX=CarpV['F/K'].to_numpy(dtype='float')                                            #Tarihsel F/K Oranı                                          
+CarpV['PD/DD'] = CarpV['PD/DD'].replace('-', np.nan)
 CARPV_PDDDX=CarpV['PD/DD'].to_numpy(dtype='float')                                        #Tarihsel PD/DD Oranı
+CarpV['FD/FAVÖK'] = CarpV['FD/FAVÖK'].replace('-', np.nan)
 CARPV_FD_FAV=CarpV['FD/FAVÖK'].to_numpy(dtype='float')                                    #Tarihsel FD/FAVÖK Oranı
+CarpV['FD/Satışlar'] = CarpV['FD/Satışlar'].replace('-', np.nan)
 CARPV_FD_SAT=CarpV['FD/Satışlar'].to_numpy(dtype='float')                                 #Tarihsel FD/Satışlar Oranı
 CARPV_FKX=np.nanmean(CARPV_FKX)                                                           #Tarihsel Ortalaması
 CARPV_PDDDX=np.nanmean(CARPV_PDDDX)                                                       #Tarihsel PD/DD Ortalaması
