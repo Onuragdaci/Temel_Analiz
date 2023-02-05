@@ -39,6 +39,7 @@ def Hisse_Piyasa_Oranlari(Hisse):
     options = Options()
     options.add_argument('--disable-gpu')
     options.add_argument('--headless')
+    options.add_argument('--no-sandbox')
     options.add_argument('--log-level=3')
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)  
     driver.get("https://halkyatirim.com.tr/skorkart/"+Hisse)
